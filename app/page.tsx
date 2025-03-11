@@ -6,28 +6,24 @@ import { FilterOptions } from "@/components/FilterBar";
 import { Job, PaginationData } from "@/types";
 import connectToDatabase from "@/lib/db";
 import JobModel from "@/models/Job";
+import { Metadata } from "next";
 
-// Define search params interface
-interface JobSearchParams {
-  page?: string;
-  limit?: string;
-  search?: string;
-  isRemote?: string;
-  company?: string;
-}
+export const metadata: Metadata = {
+  title: 'Job Hunt Dashboard',
+  description: 'Find your dream job from thousands of listings',
+};
 
 // Make the component async to fetch data server-side
-export default async function Home({
-  searchParams,
-}: {
-  searchParams?: JobSearchParams;
-}) {
+export default async function Home(props: any) {
+  // Extract search params from props
+  const searchParams = props.searchParams || {};
+  
   // Parse search params with defaults
-  const page = Number(searchParams?.page) || 1;
-  const limit = Number(searchParams?.limit) || 10;
-  const search = searchParams?.search || "";
+  const page = Number(searchParams?.page || "1");
+  const limit = Number(searchParams?.limit || "10");
+  const search = typeof searchParams?.search === "string" ? searchParams.search : "";
   const isRemote = searchParams?.isRemote === "true";
-  const company = searchParams?.company || "";
+  const company = typeof searchParams?.company === "string" ? searchParams.company : "";
 
   // Server-side data fetching
   let jobs: Job[] = [];
