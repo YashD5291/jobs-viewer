@@ -1,0 +1,190 @@
+"use client";
+
+import { Job } from '@/types';
+import Link from 'next/link';
+import { useState } from 'react';
+
+interface JobsTableProps {
+  jobs: Job[];
+  isLoading?: boolean;
+}
+
+export default function JobsTable({ jobs, isLoading = false }: JobsTableProps) {
+  const [expandedJobId, setExpandedJobId] = useState<string | null>(null);
+
+  if (isLoading) {
+    return (
+      <div className="min-w-full p-8">
+        <div className="flex flex-col items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+          <p className="mt-4 text-gray-500 text-sm">Loading job listings...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (jobs.length === 0) {
+    return (
+      <div className="text-center py-12 px-4">
+        <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <h3 className="mt-2 text-sm font-medium text-gray-900">No job listings found</h3>
+        <p className="mt-1 text-sm text-gray-500">Try adjusting your search or filter criteria.</p>
+      </div>
+    );
+  }
+
+  // Function to format date in a nice way
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays <= 1) return 'Today';
+    if (diffDays <= 2) return 'Yesterday';
+    if (diffDays <= 7) return `${diffDays} days ago`;
+    
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  // Function to toggle job expansion
+  const toggleJobExpansion = (jobId: string) => {
+    if (expandedJobId === jobId) {
+      setExpandedJobId(null);
+    } else {
+      setExpandedJobId(jobId);
+    }
+  };
+
+  return (
+    <div className="bg-white divide-y divide-gray-100">
+      <ul className="divide-y divide-gray-100">
+        {jobs.map((job) => {
+          const isExpanded = expandedJobId === job._id;
+          
+          return (
+            <li 
+              key={job._id} 
+              className="transition-all duration-300 hover:bg-gray-50"
+            >
+              <div className="p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                  {/* Job Information */}
+                  <div className="flex-1">
+                    <div className="flex items-start">
+                      {/* Company Logo Placeholder */}
+                      <div className="hidden sm:flex items-center justify-center h-12 w-12 rounded-md bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-lg font-bold">
+                        {job.company.charAt(0)}
+                      </div>
+                      
+                      <div className="sm:ml-4">
+                        <h3 className="text-lg font-semibold text-gray-900 group-hover:text-indigo-600">
+                          {job.title}
+                        </h3>
+                        <div className="mt-1 flex items-center text-sm text-gray-700">
+                          <span className="truncate">{job.company}</span>
+                          {job.location && (
+                            <>
+                              <span className="mx-1 text-gray-300">&middot;</span>
+                              <span className="truncate">{job.location}</span>
+                            </>
+                          )}
+                          <span className="mx-1 text-gray-300">&middot;</span>
+                          <span className="text-gray-500 text-xs">
+                            Posted {formatDate(job.date_posted)}
+                          </span>
+                        </div>
+                        
+                        {/* Tags */}
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {job.is_remote && (
+                            <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                              Remote
+                            </span>
+                          )}
+                          {job.job_level && (
+                            <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
+                              {job.job_level}
+                            </span>
+                          )}
+                          <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800 capitalize">
+                            {job.site}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Expanded details section */}
+                    {isExpanded && (
+                      <div className="mt-4 sm:ml-16 text-sm text-gray-500 animate-fadeIn">
+                        <div className="space-y-4">
+                          <p>
+                            This is where the job description would appear if available from the API.
+                            Usually, it would contain information about responsibilities, requirements, and benefits.
+                          </p>
+                          <div className="text-gray-700 font-medium">Skills:</div>
+                          <div className="flex flex-wrap gap-2">
+                            {['JavaScript', 'React', 'Node.js', 'TypeScript'].map((skill) => (
+                              <span key={skill} className="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
+                                {skill}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Actions Column */}
+                  <div className="flex flex-col sm:items-end gap-2">
+                    {job.job_url ? (
+                      <Link 
+                        href={job.job_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+                      >
+                        Apply Now
+                      </Link>
+                    ) : (
+                      <button
+                        disabled
+                        className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-gray-400 bg-gray-100 cursor-not-allowed"
+                      >
+                        No Link Available
+                      </button>
+                    )}
+                    
+                    <button
+                      onClick={() => toggleJobExpansion(job._id)}
+                      className="inline-flex items-center text-sm text-indigo-600 hover:text-indigo-800 transition-colors duration-200"
+                    >
+                      {isExpanded ? 'Show Less' : 'Show More'}
+                      <svg
+                        className={`ml-1 h-4 w-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}

@@ -1,100 +1,177 @@
-import Image from "next/image";
+import JobsTable from "@/components/JobsTable";
+import SearchBarClient from "@/components/SearchBarClient";
+import FilterBarClient from "@/components/FilterBarClient";
+import PaginationClient from "@/components/PaginationClient";
+import { FilterOptions } from "@/components/FilterBar";
+import { Job, PaginationData } from "@/types";
+import connectToDatabase from "@/lib/db";
+import JobModel from "@/models/Job";
 
-export default function Home() {
+// Define search params interface
+interface JobSearchParams {
+  page?: string;
+  limit?: string;
+  search?: string;
+  isRemote?: string;
+  company?: string;
+}
+
+// Make the component async to fetch data server-side
+export default async function Home({
+  searchParams,
+}: {
+  searchParams?: JobSearchParams;
+}) {
+  // Parse search params with defaults
+  const page = Number(searchParams?.page) || 1;
+  const limit = Number(searchParams?.limit) || 10;
+  const search = searchParams?.search || "";
+  const isRemote = searchParams?.isRemote === "true";
+  const company = searchParams?.company || "";
+
+  // Server-side data fetching
+  let jobs: Job[] = [];
+  let pagination: PaginationData = {
+    total: 0,
+    page,
+    limit,
+    pages: 0,
+  };
+  let error: string | null = null;
+
+  try {
+    // Connect to database directly on the server
+    await connectToDatabase();
+
+    // Build query object
+    const query: any = {};
+
+    // Add search filter if provided
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { company: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    // Add remote filter if selected
+    if (isRemote) {
+      query.is_remote = true;
+    }
+
+    // Add company filter if selected
+    if (company) {
+      query.company = company;
+    }
+
+    // Count total documents matching the query
+    const total = await JobModel.countDocuments(query);
+
+    // Calculate pagination values
+    const pages = Math.ceil(total / limit);
+    const skip = (page - 1) * limit;
+
+    // Fetch jobs with pagination
+    const fetchedJobs = await JobModel.find(query)
+      .sort({ date_posted: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean(); // Use lean() to get plain JavaScript objects instead of Mongoose documents
+
+    // Convert Mongoose documents to plain JavaScript objects
+    // This ensures we're not passing Mongoose document instances to client components
+    jobs = JSON.parse(JSON.stringify(fetchedJobs));
+    
+    pagination = {
+      total,
+      page,
+      limit,
+      pages,
+    };
+  } catch (err) {
+    console.error("Error fetching jobs:", err);
+    error = "An error occurred while fetching job listings";
+  }
+
+  // Convert filters to FilterOptions object for UI components
+  const filters: FilterOptions = {
+    isRemote,
+    company,
+  };
+
+  // Check if any filters are active
+  const hasActiveFilters = isRemote || company !== "";
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md">
+        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+          <h1 className="text-3xl font-bold tracking-tight">Job Hunt Dashboard</h1>
+          <p className="mt-2 text-indigo-100">Find your dream job from thousands of listings</p>
+        </div>
+      </header>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div className="px-4 sm:px-0 space-y-6">
+          {/* Search Section */}
+          <div className="bg-white rounded-xl shadow-md p-6 transition-all duration-300 hover:shadow-lg">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+              <h2 className="text-xl font-bold text-gray-900">Find Your Next Opportunity</h2>
+
+              <div className="flex items-center text-sm text-gray-600">
+                <span className="font-medium">{pagination.total}</span>
+                <span className="ml-1">{pagination.total === 1 ? 'job' : 'jobs'} found</span>
+                {hasActiveFilters && (
+                  <span className="ml-2 px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full text-xs font-medium">
+                    Filtered
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {/* Client components for interactive elements */}
+              <SearchBarClient initialValue={search} />
+              <FilterBarClient initialFilters={filters} />
+            </div>
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded-md animate-fadeIn">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-red-800">{error}</h3>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Job Listings */}
+          <div className="bg-white shadow-md rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg">
+            <div className="border-b border-gray-200 px-6 py-4 bg-gradient-to-r from-gray-50 to-white">
+              <h2 className="text-xl font-bold text-gray-900">Available Positions</h2>
+            </div>
+            <JobsTable jobs={jobs} isLoading={false} />
+            {jobs.length > 0 && (
+              <PaginationClient pagination={pagination} />
+            )}
+          </div>
         </div>
       </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+
+      <footer className="bg-white border-t border-gray-200 mt-12">
+        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+          <p className="text-center text-sm text-gray-500">
+            Job Hunt Dashboard &copy; {new Date().getFullYear()} - Find your dream job today
+          </p>
+        </div>
       </footer>
     </div>
   );
