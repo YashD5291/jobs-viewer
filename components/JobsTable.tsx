@@ -82,8 +82,8 @@ export default function JobsTable({ jobs, isLoading = false }: JobsTableProps) {
             <li
               key={job._id}
               className={`transition-all duration-300 ${isAddedToday
-                  ? 'bg-blue-50 hover:bg-blue-100 border-l-4 border-blue-500'
-                  : 'hover:bg-gray-50'
+                ? 'bg-blue-50 hover:bg-blue-100 border-l-4 border-blue-500'
+                : 'hover:bg-gray-50'
                 }`}
             >
               <div className="p-4 sm:p-6">
@@ -150,18 +150,22 @@ export default function JobsTable({ jobs, isLoading = false }: JobsTableProps) {
                     {isExpanded && (
                       <div className="mt-4 sm:ml-16 text-sm text-gray-500 animate-fadeIn">
                         <div className="space-y-4">
-                          <p>
-                            This is where the job description would appear if available from the API.
-                            Usually, it would contain information about responsibilities, requirements, and benefits.
-                          </p>
-                          <div className="text-gray-700 font-medium">Skills:</div>
-                          <div className="flex flex-wrap gap-2">
-                            {['JavaScript', 'React', 'Node.js', 'TypeScript'].map((skill) => (
-                              <span key={skill} className="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
-                                {skill}
-                              </span>
-                            ))}
-                          </div>
+                          {job.description ? (
+                            <div>
+                              <h4 className="text-base font-medium text-gray-700 mb-2">Job Description</h4>
+                              <div className="prose prose-sm max-w-none">
+                                {job.description.split('\n').map((paragraph, index) => (
+                                  paragraph.trim() ? (
+                                    <p key={index} className="mb-2">
+                                      {paragraph}
+                                    </p>
+                                  ) : null
+                                ))}
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="italic">No job description available</p>
+                          )}
                         </div>
                       </div>
                     )}
