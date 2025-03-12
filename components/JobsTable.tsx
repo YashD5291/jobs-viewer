@@ -179,8 +179,8 @@ export default function JobsTable({ jobs, isLoading = false }: JobsTableProps) {
                         target="_blank"
                         rel="noopener noreferrer"
                         className={`inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white ${isAddedToday
-                            ? 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'
-                            : 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500'
+                          ? 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'
+                          : 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500'
                           } focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-200`}
                       >
                         Apply Now

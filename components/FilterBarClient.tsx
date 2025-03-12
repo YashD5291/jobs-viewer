@@ -129,19 +129,6 @@ export default function FilterBarClient({ initialFilters = {} }: FilterBarClient
             ]}
           />
 
-          {/* <SelectDropdown
-            id="posted-date"
-            label="Posted Date"
-            value=""
-            onChange={() => {}}
-            options={[
-              { value: '', label: 'Any Time' },
-              { value: 'today', label: 'Today' },
-              { value: 'week', label: 'Past Week' },
-              { value: 'month', label: 'Past Month' },
-              { value: '3months', label: 'Past 3 Months' }
-            ]}
-          /> */}
         </div>
 
         {/* Active Filters Display */}

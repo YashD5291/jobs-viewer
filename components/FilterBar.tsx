@@ -89,7 +89,7 @@ export default function FilterBar({ onFilterChange, initialFilters = {} }: Filte
             id="job-level"
             label="Job Level"
             value=""
-            onChange={() => {}}
+            onChange={() => {  }}
             options={[
               { value: '', label: 'Any Level' },
               { value: 'entry', label: 'Entry Level' },
@@ -99,19 +99,6 @@ export default function FilterBar({ onFilterChange, initialFilters = {} }: Filte
             ]}
           />
 
-          {/* <SelectDropdown
-            id="posted-date"
-            label="Posted Date"
-            value=""
-            onChange={() => {}}
-            options={[
-              { value: '', label: 'Any Time' },
-              { value: 'today', label: 'Today' },
-              { value: 'week', label: 'Past Week' },
-              { value: 'month', label: 'Past Month' },
-              { value: '3months', label: 'Past 3 Months' }
-            ]}
-          /> */}
         </div>
 
         {/* Active Filters Display */}
