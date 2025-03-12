@@ -1,103 +1,87 @@
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
 import JobsTable from "@/components/JobsTable";
-import SearchBarClient from "@/components/SearchBarClient";
-import FilterBarClient from "@/components/FilterBarClient";
-import PaginationClient from "@/components/PaginationClient";
-import { FilterOptions } from "@/components/FilterBar";
+import Pagination from "@/components/Pagination";
+import SearchBar from "@/components/SearchBar";
+import FilterBar, { FilterOptions } from "@/components/FilterBar";
+import { fetchJobs } from "@/lib/api";
 import { Job, PaginationData } from "@/types";
-import connectToDatabase from "@/lib/db";
-import JobModel from "@/models/Job";
-import { Metadata } from "next";
 
-export const metadata: Metadata = {
-  title: 'Job Hunt Dashboard',
-  description: 'Find your dream job from thousands of listings',
-};
-
-// Make the component async to fetch data server-side
-export default async function Home(props: any) {
-  // Extract search params from props
-  const searchParams = props.searchParams || {};
-  
-  // Parse search params with defaults
-  const page = Number(searchParams?.page || "1");
-  const limit = Number(searchParams?.limit || "10");
-  const search = typeof searchParams?.search === "string" ? searchParams.search : "";
-  const isRemote = searchParams?.isRemote === "true";
-  const company = typeof searchParams?.company === "string" ? searchParams.company : "";
-
-  // Server-side data fetching
-  let jobs: Job[] = [];
-  let pagination: PaginationData = {
+export default function Home() {
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [pagination, setPagination] = useState<PaginationData>({
     total: 0,
-    page,
-    limit,
+    page: 1,
+    limit: 50, // Default page size changed to 50
     pages: 0,
-  };
-  let error: string | null = null;
+  });
+  const [search, setSearch] = useState("");
+  const [filters, setFilters] = useState<FilterOptions>({
+    isRemote: false,
+    company: "",
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  // FilterBar is now always visible
 
-  try {
-    // Connect to database directly on the server
-    await connectToDatabase();
-
-    // Build query object
-    const query: any = {};
-
-    // Add search filter if provided
-    if (search) {
-      query.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { company: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } }
-      ];
+  // Memoize the loadJobs function to prevent it from changing on every render
+  const loadJobs = useCallback(async (
+    page: number, 
+    limit: number, 
+    searchTerm: string, 
+    isRemote: boolean = false, 
+    company: string = ""
+  ) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await fetchJobs(page, limit, searchTerm, isRemote, company);
+      if (response.success) {
+        setJobs(response.data.jobs);
+        setPagination(response.data.pagination);
+      } else {
+        setError("Failed to load job listings");
+      }
+    } catch (err) {
+      setError("An error occurred while fetching job listings");
+      console.error(err);
+    } finally {
+      setIsLoading(false);
     }
+  }, []);
 
-    // Add remote filter if selected
-    if (isRemote) {
-      query.is_remote = true;
-    }
+  // Initial data load
+  useEffect(() => {
+    loadJobs(pagination.page, pagination.limit, search, filters.isRemote, filters.company);
+  }, [loadJobs, pagination.page, pagination.limit, search, filters.isRemote, filters.company]);
 
-    // Add company filter if selected
-    if (company) {
-      query.company = company;
-    }
+  // Memoize handler functions to maintain stable references
+  const handlePageChange = useCallback((page: number) => {
+    setPagination((prev) => ({ ...prev, page }));
+    // Scroll back to top when changing pages
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+  
+  const handleRowsPerPageChange = useCallback((limit: number) => {
+    setPagination((prev) => ({ ...prev, page: 1, limit }));
+    loadJobs(1, limit, search, filters.isRemote, filters.company);
+    // Scroll back to top when changing page size
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [loadJobs, search, filters.isRemote, filters.company]);
 
-    // Count total documents matching the query
-    const total = await JobModel.countDocuments(query);
+  const handleSearch = useCallback((searchTerm: string) => {
+    setSearch(searchTerm);
+    loadJobs(1, pagination.limit, searchTerm, filters.isRemote, filters.company);
+  }, [loadJobs, pagination.limit, filters.isRemote, filters.company]);
 
-    // Calculate pagination values
-    const pages = Math.ceil(total / limit);
-    const skip = (page - 1) * limit;
-
-    // Fetch jobs with pagination
-    const fetchedJobs = await JobModel.find(query)
-      .sort({ date_posted: -1 })
-      .skip(skip)
-      .limit(limit)
-      .lean(); // Use lean() to get plain JavaScript objects instead of Mongoose documents
-
-    // Convert Mongoose documents to plain JavaScript objects
-    // This ensures we're not passing Mongoose document instances to client components
-    jobs = JSON.parse(JSON.stringify(fetchedJobs));
-    
-    pagination = {
-      total,
-      page,
-      limit,
-      pages,
-    };
-  } catch (err) {
-    console.error("Error fetching jobs:", err);
-    error = "An error occurred while fetching job listings";
-  }
-
-  // Convert filters to FilterOptions object for UI components
-  const filters: FilterOptions = {
-    isRemote,
-    company,
-  };
+  const handleFilterChange = useCallback((newFilters: FilterOptions) => {
+    setFilters(newFilters);
+    loadJobs(1, pagination.limit, search, newFilters.isRemote, newFilters.company);
+  }, [loadJobs, pagination.limit, search]);
 
   // Check if any filters are active
-  const hasActiveFilters = isRemote || company !== "";
+  const hasActiveFilters = filters.isRemote || filters.company !== "";
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -107,14 +91,14 @@ export default async function Home(props: any) {
           <p className="mt-2 text-indigo-100">Find your dream job from thousands of listings</p>
         </div>
       </header>
-
+      
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 sm:px-0 space-y-6">
           {/* Search Section */}
           <div className="bg-white rounded-xl shadow-md p-6 transition-all duration-300 hover:shadow-lg">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
               <h2 className="text-xl font-bold text-gray-900">Find Your Next Opportunity</h2>
-
+              
               <div className="flex items-center text-sm text-gray-600">
                 <span className="font-medium">{pagination.total}</span>
                 <span className="ml-1">{pagination.total === 1 ? 'job' : 'jobs'} found</span>
@@ -125,11 +109,11 @@ export default async function Home(props: any) {
                 )}
               </div>
             </div>
-
+            
             <div className="space-y-4">
-              {/* Client components for interactive elements */}
-              <SearchBarClient initialValue={search} />
-              <FilterBarClient initialFilters={filters} />
+              <SearchBar onSearch={handleSearch} initialValue={search} />
+              
+              <FilterBar onFilterChange={handleFilterChange} initialFilters={filters} />
             </div>
           </div>
 
@@ -154,18 +138,22 @@ export default async function Home(props: any) {
             <div className="border-b border-gray-200 px-6 py-4 bg-gradient-to-r from-gray-50 to-white">
               <h2 className="text-xl font-bold text-gray-900">Available Positions</h2>
             </div>
-            <JobsTable jobs={jobs} isLoading={false} />
-            {jobs.length > 0 && (
-              <PaginationClient pagination={pagination} />
+            <JobsTable jobs={jobs} isLoading={isLoading} />
+            {!isLoading && jobs.length > 0 && (
+              <Pagination 
+                pagination={pagination} 
+                onPageChange={handlePageChange} 
+                onRowsPerPageChange={handleRowsPerPageChange} 
+              />
             )}
           </div>
         </div>
       </main>
-
+      
       <footer className="bg-white border-t border-gray-200 mt-12">
         <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
           <p className="text-center text-sm text-gray-500">
-            Job Hunt Dashboard &copy; {new Date().getFullYear()} - Find your dream job today
+            Job Hunt Dashboard © {new Date().getFullYear()} - Find your dream job today
           </p>
         </div>
       </footer>

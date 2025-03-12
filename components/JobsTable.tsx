@@ -35,17 +35,26 @@ export default function JobsTable({ jobs, isLoading = false }: JobsTableProps) {
     );
   }
 
+  // Function to check if a date is today
+  const isToday = (dateString: string) => {
+    const date = new Date(dateString);
+    const today = new Date();
+    return date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear();
+  };
+
   // Function to format date in a nice way
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - date.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays <= 1) return 'Today';
     if (diffDays <= 2) return 'Yesterday';
-    if (diffDays <= 7) return `${diffDays} days ago`;
-    
+    if (diffDays <= 5) return `${diffDays} days ago`;
+
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -67,11 +76,15 @@ export default function JobsTable({ jobs, isLoading = false }: JobsTableProps) {
       <ul className="divide-y divide-gray-100">
         {jobs.map((job) => {
           const isExpanded = expandedJobId === job._id;
-          
+          const isAddedToday = job?.added_on ? formatDate(job?.added_on) === 'Today' : false;
+
           return (
-            <li 
-              key={job._id} 
-              className="transition-all duration-300 hover:bg-gray-50"
+            <li
+              key={job._id}
+              className={`transition-all duration-300 ${isAddedToday
+                  ? 'bg-blue-50 hover:bg-blue-100 border-l-4 border-blue-500'
+                  : 'hover:bg-gray-50'
+                }`}
             >
               <div className="p-4 sm:p-6">
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
@@ -82,11 +95,18 @@ export default function JobsTable({ jobs, isLoading = false }: JobsTableProps) {
                       <div className="hidden sm:flex items-center justify-center h-12 w-12 rounded-md bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-lg font-bold">
                         {job.company.charAt(0)}
                       </div>
-                      
+
                       <div className="sm:ml-4">
-                        <h3 className="text-lg font-semibold text-gray-900 group-hover:text-indigo-600">
-                          {job.title}
-                        </h3>
+                        <div className="flex items-center">
+                          <h3 className="text-lg font-semibold text-gray-900 group-hover:text-indigo-600">
+                            {job.title}
+                          </h3>
+                          {isAddedToday && (
+                            <span className="ml-2 inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 animate-pulse">
+                              New
+                            </span>
+                          )}
+                        </div>
                         <div className="mt-1 flex items-center text-sm text-gray-700">
                           <span className="truncate">{job.company}</span>
                           {job.location && (
@@ -96,11 +116,17 @@ export default function JobsTable({ jobs, isLoading = false }: JobsTableProps) {
                             </>
                           )}
                           <span className="mx-1 text-gray-300">&middot;</span>
+                          {job?.added_on && (
+                            <span className={`text-xs ${isAddedToday ? 'font-semibold text-blue-600' : 'text-gray-500'}`}>
+                              Added {formatDate(job?.added_on)}
+                            </span>
+                          )}
+                          &nbsp;|&nbsp;
                           <span className="text-gray-500 text-xs">
                             Posted {formatDate(job.date_posted)}
                           </span>
                         </div>
-                        
+
                         {/* Tags */}
                         <div className="mt-2 flex flex-wrap gap-2">
                           {job.is_remote && (
@@ -119,7 +145,7 @@ export default function JobsTable({ jobs, isLoading = false }: JobsTableProps) {
                         </div>
                       </div>
                     </div>
-                    
+
                     {/* Expanded details section */}
                     {isExpanded && (
                       <div className="mt-4 sm:ml-16 text-sm text-gray-500 animate-fadeIn">
@@ -140,15 +166,18 @@ export default function JobsTable({ jobs, isLoading = false }: JobsTableProps) {
                       </div>
                     )}
                   </div>
-                  
+
                   {/* Actions Column */}
                   <div className="flex flex-col sm:items-end gap-2">
                     {job.job_url ? (
-                      <Link 
-                        href={job.job_url} 
-                        target="_blank" 
+                      <Link
+                        href={job.job_url}
+                        target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
+                        className={`inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white ${isAddedToday
+                            ? 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'
+                            : 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500'
+                          } focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-200`}
                       >
                         Apply Now
                       </Link>
@@ -160,10 +189,11 @@ export default function JobsTable({ jobs, isLoading = false }: JobsTableProps) {
                         No Link Available
                       </button>
                     )}
-                    
+
                     <button
                       onClick={() => toggleJobExpansion(job._id)}
-                      className="inline-flex items-center text-sm text-indigo-600 hover:text-indigo-800 transition-colors duration-200"
+                      className={`inline-flex items-center text-sm ${isAddedToday ? 'text-blue-600 hover:text-blue-800' : 'text-indigo-600 hover:text-indigo-800'
+                        } transition-colors duration-200`}
                     >
                       {isExpanded ? 'Show Less' : 'Show More'}
                       <svg

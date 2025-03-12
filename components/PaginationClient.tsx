@@ -5,9 +5,10 @@ import { PaginationData } from '@/types';
 
 interface PaginationClientProps {
   pagination: PaginationData;
+  onRowsPerPageChange?: (rowsPerPage: number) => void;
 }
 
-export default function PaginationClient({ pagination }: PaginationClientProps) {
+export default function PaginationClient({ pagination, onRowsPerPageChange }: PaginationClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   
@@ -26,163 +27,192 @@ export default function PaginationClient({ pagination }: PaginationClientProps) 
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   
-  // Generate page links
-  const pageLinks = [];
+  const { page, pages, total, limit } = pagination;
   
-  // Previous button
-  pageLinks.push(
-    <button
-      key="prev"
-      onClick={() => pagination.page > 1 && goToPage(pagination.page - 1)}
-      disabled={pagination.page <= 1}
-      className={`relative inline-flex items-center px-2 py-2 rounded-l-md border ${
-        pagination.page <= 1
-          ? 'border-gray-300 bg-white text-gray-300 cursor-not-allowed'
-          : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'
-      }`}
-    >
-      <span className="sr-only">Previous</span>
-      <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-        <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-      </svg>
-    </button>
-  );
-
-  // Calculate range of pages to show
-  let startPage = Math.max(1, pagination.page - 2);
-  let endPage = Math.min(pagination.pages, startPage + 4);
+  // Generate page numbers array
+  const pageNumbers = [];
+  const maxPageButtons = 5;
   
-  // Adjust start if we're near the end
-  if (endPage - startPage < 4) {
-    startPage = Math.max(1, endPage - 4);
+  let startPage = Math.max(1, page - Math.floor(maxPageButtons / 2));
+  let endPage = Math.min(pages, startPage + maxPageButtons - 1);
+  
+  // Adjust if we're at the end of the range
+  if (endPage - startPage + 1 < maxPageButtons) {
+    startPage = Math.max(1, endPage - maxPageButtons + 1);
   }
   
-  // First page
-  if (startPage > 1) {
-    pageLinks.push(
-      <button
-        key={1}
-        onClick={() => goToPage(1)}
-        className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
-      >
-        1
-      </button>
-    );
-    
-    // Ellipsis if needed
-    if (startPage > 2) {
-      pageLinks.push(
-        <span key="ellipsis1" className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
-          ...
-        </span>
-      );
-    }
-  }
-  
-  // Page numbers
   for (let i = startPage; i <= endPage; i++) {
-    pageLinks.push(
-      <button
-        key={i}
-        onClick={() => goToPage(i)}
-        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-          pagination.page === i
-            ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
-            : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
-        }`}
-      >
-        {i}
-      </button>
-    );
+    pageNumbers.push(i);
   }
   
-  // Ellipsis if needed
-  if (endPage < pagination.pages - 1) {
-    pageLinks.push(
-      <span key="ellipsis2" className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
-        ...
-      </span>
-    );
-  }
+  // Check if we should show "..." and first/last page buttons
+  const showLeftEllipsis = startPage > 2;
+  const showRightEllipsis = endPage < pages - 1;
+  const showFirstPage = startPage > 1;
+  const showLastPage = endPage < pages;
   
-  // Last page
-  if (endPage < pagination.pages) {
-    pageLinks.push(
-      <button
-        key={pagination.pages}
-        onClick={() => goToPage(pagination.pages)}
-        className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
-      >
-        {pagination.pages}
-      </button>
-    );
-  }
+  // Handle rows per page change
+  const handleRowsPerPageChange = (newLimit: number) => {
+    if (onRowsPerPageChange) {
+      onRowsPerPageChange(newLimit);
+    } else {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('limit', newLimit.toString());
+      params.set('page', '1'); // Reset to page 1 when changing rows per page
+      router.push(`/?${params.toString()}`);
+    }
+  };
   
-  // Next button
-  pageLinks.push(
-    <button
-      key="next"
-      onClick={() => pagination.page < pagination.pages && goToPage(pagination.page + 1)}
-      disabled={pagination.page >= pagination.pages}
-      className={`relative inline-flex items-center px-2 py-2 rounded-r-md border ${
-        pagination.page >= pagination.pages
-          ? 'border-gray-300 bg-white text-gray-300 cursor-not-allowed'
-          : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-50'
-      }`}
-    >
-      <span className="sr-only">Next</span>
-      <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-        <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-      </svg>
-    </button>
-  );
-
   // Don't render if there's only one page
-  if (pagination.pages <= 1) {
+  if (pages <= 1) {
     return null;
   }
 
   return (
-    <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-      <div className="flex-1 flex justify-between sm:hidden">
-        <button
-          onClick={() => pagination.page > 1 && goToPage(pagination.page - 1)}
-          disabled={pagination.page <= 1}
-          className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
-            pagination.page <= 1
-              ? 'bg-white text-gray-300 cursor-not-allowed'
-              : 'bg-white text-gray-700 hover:bg-gray-50'
-          }`}
-        >
-          Previous
-        </button>
-        <button
-          onClick={() => pagination.page < pagination.pages && goToPage(pagination.page + 1)}
-          disabled={pagination.page >= pagination.pages}
-          className={`ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
-            pagination.page >= pagination.pages
-              ? 'bg-white text-gray-300 cursor-not-allowed'
-              : 'bg-white text-gray-700 hover:bg-gray-50'
-          }`}
-        >
-          Next
-        </button>
-      </div>
-      <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-        <div>
-          <p className="text-sm text-gray-700">
-            Showing <span className="font-medium">{((pagination.page - 1) * pagination.limit) + 1}</span> to{' '}
-            <span className="font-medium">
-              {Math.min(pagination.page * pagination.limit, pagination.total)}
-            </span>{' '}
-            of <span className="font-medium">{pagination.total}</span> results
+    <div className="border-t border-gray-200 px-4 py-4 sm:px-6 bg-gray-50">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center text-sm text-gray-700 mb-4 sm:mb-0 gap-4">
+          <p>
+            Showing <span className="font-medium">{Math.min(total, (page - 1) * limit + 1)}</span> to{' '}
+            <span className="font-medium">{Math.min(page * limit, total)}</span> of{' '}
+            <span className="font-medium">{total}</span> results
           </p>
+          
+          {onRowsPerPageChange && (
+            <div className="flex items-center">
+              <label htmlFor="rows-per-page" className="mr-2 text-sm text-gray-600">
+                Rows per page:
+              </label>
+              <select
+                id="rows-per-page"
+                value={limit}
+                onChange={(e) => handleRowsPerPageChange(Number(e.target.value))}
+                className="block w-20 rounded-md border-gray-300 bg-white py-1 pl-3 pr-3 text-gray-700 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 text-sm transition-colors duration-200 appearance-none"
+                style={{ backgroundImage: 'none' }}
+              >
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+          )}
         </div>
-        <div>
-          <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-            {pageLinks}
-          </nav>
+        
+        {/* Mobile Pagination */}
+        <div className="flex justify-between sm:hidden">
+          <button
+            onClick={() => page > 1 && goToPage(page - 1)}
+            disabled={page <= 1}
+            className={`relative inline-flex items-center px-4 py-2 text-sm font-medium rounded-md ${
+              page <= 1 
+                ? 'text-gray-300 bg-white cursor-not-allowed' 
+                : 'text-gray-700 bg-white hover:bg-gray-50 border border-gray-300'
+            }`}
+          >
+            <svg className="mr-2 h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fillRule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clipRule="evenodd" />
+            </svg>
+            Previous
+          </button>
+          <button
+            onClick={() => page < pages && goToPage(page + 1)}
+            disabled={page >= pages}
+            className={`relative ml-3 inline-flex items-center px-4 py-2 text-sm font-medium rounded-md ${
+              page >= pages 
+                ? 'text-gray-300 bg-white cursor-not-allowed' 
+                : 'text-gray-700 bg-white hover:bg-gray-50 border border-gray-300'
+            }`}
+          >
+            Next
+            <svg className="ml-2 h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
+            </svg>
+          </button>
         </div>
+        
+        {/* Desktop Pagination */}
+        <nav className="hidden sm:inline-flex -space-x-px rounded-md shadow-sm isolate" aria-label="Pagination">
+          <button
+            onClick={() => page > 1 && goToPage(page - 1)}
+            disabled={page <= 1}
+            className={`relative inline-flex items-center rounded-l-md px-3 py-2 text-sm ${
+              page <= 1 
+                ? 'text-gray-300 bg-white cursor-not-allowed' 
+                : 'text-gray-500 bg-white hover:bg-gray-50 hover:text-indigo-600 border border-gray-300 transition-colors duration-200'
+            }`}
+          >
+            <span className="sr-only">Previous</span>
+            <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fillRule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clipRule="evenodd" />
+            </svg>
+          </button>
+          
+          {/* First Page */}
+          {showFirstPage && (
+            <button
+              onClick={() => goToPage(1)}
+              className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 hover:bg-gray-50 hover:text-indigo-600 transition-colors duration-200"
+            >
+              1
+            </button>
+          )}
+          
+          {/* Left Ellipsis */}
+          {showLeftEllipsis && (
+            <span className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300">
+              &hellip;
+            </span>
+          )}
+          
+          {/* Page Numbers */}
+          {pageNumbers.map((num) => (
+            <button
+              key={num}
+              onClick={() => goToPage(num)}
+              aria-current={page === num ? 'page' : undefined}
+              className={`relative inline-flex items-center px-4 py-2 text-sm font-medium ${
+                page === num
+                  ? 'z-10 bg-indigo-600 text-white border border-indigo-600 focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
+                  : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50 hover:text-indigo-600 transition-colors duration-200'
+              }`}
+            >
+              {num}
+            </button>
+          ))}
+          
+          {/* Right Ellipsis */}
+          {showRightEllipsis && (
+            <span className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300">
+              &hellip;
+            </span>
+          )}
+          
+          {/* Last Page */}
+          {showLastPage && (
+            <button
+              onClick={() => goToPage(pages)}
+              className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 hover:bg-gray-50 hover:text-indigo-600 transition-colors duration-200"
+            >
+              {pages}
+            </button>
+          )}
+          
+          <button
+            onClick={() => page < pages && goToPage(page + 1)}
+            disabled={page >= pages}
+            className={`relative inline-flex items-center rounded-r-md px-3 py-2 text-sm ${
+              page >= pages 
+                ? 'text-gray-300 bg-white cursor-not-allowed' 
+                : 'text-gray-500 bg-white hover:bg-gray-50 hover:text-indigo-600 border border-gray-300 transition-colors duration-200'
+            }`}
+          >
+            <span className="sr-only">Next</span>
+            <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
+            </svg>
+          </button>
+        </nav>
       </div>
     </div>
   );

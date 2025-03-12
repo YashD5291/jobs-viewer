@@ -1,14 +1,13 @@
-"use client";
-
 import { PaginationData } from '@/types';
 
 interface PaginationProps {
   pagination: PaginationData;
   onPageChange: (page: number) => void;
+  onRowsPerPageChange?: (rowsPerPage: number) => void;
 }
 
-export default function Pagination({ pagination, onPageChange }: PaginationProps) {
-  const { page, pages, total } = pagination;
+export default function Pagination({ pagination, onPageChange, onRowsPerPageChange }: PaginationProps) {
+  const { page, pages, total, limit } = pagination;
   
   // Generate page numbers array
   const pageNumbers = [];
@@ -35,12 +34,32 @@ export default function Pagination({ pagination, onPageChange }: PaginationProps
   return (
     <div className="border-t border-gray-200 px-4 py-4 sm:px-6 bg-gray-50">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <div className="text-sm text-gray-700 mb-4 sm:mb-0">
+        <div className="flex flex-col sm:flex-row sm:items-center text-sm text-gray-700 mb-4 sm:mb-0 gap-4">
           <p>
             Showing <span className="font-medium">{Math.min(total, (page - 1) * pagination.limit + 1)}</span> to{' '}
             <span className="font-medium">{Math.min(page * pagination.limit, total)}</span> of{' '}
             <span className="font-medium">{total}</span> results
           </p>
+          
+          {onRowsPerPageChange && (
+            <div className="flex items-center">
+              <label htmlFor="rows-per-page" className="mr-2 text-sm text-gray-600">
+                Rows per page:
+              </label>
+              <select
+                id="rows-per-page"
+                value={limit}
+                onChange={(e) => onRowsPerPageChange(Number(e.target.value))}
+                className="block w-20 rounded-md border-gray-300 bg-white py-1 pl-3 pr-3 text-gray-700 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 text-sm transition-colors duration-200 appearance-none"
+                style={{ backgroundImage: 'none' }}
+              >
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+          )}
         </div>
         
         {/* Mobile Pagination */}

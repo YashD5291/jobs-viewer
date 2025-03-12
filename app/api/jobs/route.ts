@@ -63,7 +63,7 @@ export async function GET(request: Request) {
     
     // Execute query
     const jobs = await Job.find(query)
-      .sort({ date_posted: -1 })
+      .sort({ added_on: -1 })
       .skip(skip)
       .limit(limit)
       .lean();

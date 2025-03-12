@@ -8,6 +8,7 @@ export interface Job {
   company: string;
   location?: string;
   date_posted: string; 
+  added_on?: string;
   job_type?: any;
   salary_source?: any;
   interval?: any;

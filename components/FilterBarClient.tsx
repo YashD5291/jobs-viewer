@@ -129,7 +129,7 @@ export default function FilterBarClient({ initialFilters = {} }: FilterBarClient
             ]}
           />
 
-          <SelectDropdown
+          {/* <SelectDropdown
             id="posted-date"
             label="Posted Date"
             value=""
@@ -141,7 +141,7 @@ export default function FilterBarClient({ initialFilters = {} }: FilterBarClient
               { value: 'month', label: 'Past Month' },
               { value: '3months', label: 'Past 3 Months' }
             ]}
-          />
+          /> */}
         </div>
 
         {/* Active Filters Display */}
