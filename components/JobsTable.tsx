@@ -93,7 +93,7 @@ export default function JobsTable({ jobs, isLoading = false }: JobsTableProps) {
                     <div className="flex items-start">
                       {/* Company Logo Placeholder */}
                       <div className="hidden sm:flex items-center justify-center h-12 w-12 rounded-md bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-lg font-bold">
-                        {job.company.charAt(0)}
+                        {job?.company?.charAt(0)}
                       </div>
 
                       <div className="sm:ml-4">
