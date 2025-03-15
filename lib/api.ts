@@ -1,7 +1,7 @@
 /**
  * Fetches job listings from the API
  */
-export async function fetchJobs(page = 1, limit = 10, search = '', isRemote = false, company = '') {
+export async function fetchJobs(page = 1, limit = 10, search = '', isRemote = false, site = '') {
   const params = new URLSearchParams({
     page: page.toString(),
     limit: limit.toString(),
@@ -15,8 +15,8 @@ export async function fetchJobs(page = 1, limit = 10, search = '', isRemote = fa
     params.append('isRemote', 'true');
   }
   
-  if (company) {
-    params.append('company', company);
+  if (site) {
+    params.append('site', site);
   }
   
   const response = await fetch(`/api/jobs?${params.toString()}`);

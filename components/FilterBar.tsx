@@ -3,7 +3,7 @@ import SelectDropdown from './SelectDropdown';
 
 export interface FilterOptions {
   isRemote?: boolean;
-  company?: string;
+  site?: string;
 }
 
 interface FilterBarProps {
@@ -13,18 +13,18 @@ interface FilterBarProps {
 
 export default function FilterBar({ onFilterChange, initialFilters = {} }: FilterBarProps) {
   const [isRemote, setIsRemote] = useState(initialFilters.isRemote || false);
-  const [company, setCompany] = useState(initialFilters.company || '');
+  const [site, setSite] = useState(initialFilters.site || '');
 
-  // Common companies - you could fetch this from the API dynamically in a real app
-  const commonCompanies = ['Google', 'Microsoft', 'Amazon', 'Principal Financial Group'];
+  // Job sites
+  const jobSites = ['indeed', 'linkedin', 'glassdoor', 'google'];
 
   // Check if any filters are active
-  const hasActiveFilters = isRemote || company !== '';
+  const hasActiveFilters = isRemote || site !== '';
 
   // Only trigger effect when filter values change, not when function reference changes
   useEffect(() => {
-    onFilterChange({ isRemote, company });
-  }, [isRemote, company]);
+    onFilterChange({ isRemote, site });
+  }, [isRemote, site]);
 
   return (
     <div className="bg-white rounded-lg shadow-sm transition-all duration-300">
@@ -36,7 +36,7 @@ export default function FilterBar({ onFilterChange, initialFilters = {} }: Filte
           <button
             onClick={() => {
               setIsRemote(false);
-              setCompany('');
+              setSite('');
             }}
             disabled={!hasActiveFilters}
             className={`flex items-center text-sm ${hasActiveFilters
@@ -72,30 +72,18 @@ export default function FilterBar({ onFilterChange, initialFilters = {} }: Filte
             </div>
           </div>
 
-          {/* Company Filter using reusable component */}
+          {/* Site Filter using reusable component */}
           <SelectDropdown
-            id="company-filter"
-            label="Company"
-            value={company}
-            onChange={setCompany}
+            id="site-filter"
+            label="Job Site"
+            value={site}
+            onChange={setSite}
             options={[
-              { value: '', label: 'All Companies' },
-              ...commonCompanies.map(company => ({ value: company, label: company }))
-            ]}
-          />
-
-          {/* Additional filter placeholders using reusable component */}
-          <SelectDropdown
-            id="job-level"
-            label="Job Level"
-            value=""
-            onChange={() => {  }}
-            options={[
-              { value: '', label: 'Any Level' },
-              { value: 'entry', label: 'Entry Level' },
-              { value: 'mid', label: 'Mid Level' },
-              { value: 'senior', label: 'Senior Level' },
-              { value: 'executive', label: 'Executive' }
+              { value: '', label: 'All Sites' },
+              ...jobSites.map(site => ({ 
+                value: site, 
+                label: site.charAt(0).toUpperCase() + site.slice(1) 
+              }))
             ]}
           />
 
@@ -120,15 +108,15 @@ export default function FilterBar({ onFilterChange, initialFilters = {} }: Filte
                 </button>
               </span>
             )}
-            {company && (
+            {site && (
               <span className="inline-flex items-center rounded-full bg-indigo-100 px-3 py-0.5 text-xs font-medium text-indigo-800">
-                Company: {company}
+                Site: {site.charAt(0).toUpperCase() + site.slice(1)}
                 <button
                   type="button"
-                  onClick={() => setCompany('')}
+                  onClick={() => setSite('')}
                   className="ml-1 inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full text-indigo-600 hover:bg-indigo-200 hover:text-indigo-800 focus:bg-indigo-500 focus:text-white focus:outline-none"
                 >
-                  <span className="sr-only">Remove company filter</span>
+                  <span className="sr-only">Remove site filter</span>
                   <svg className="h-2 w-2" stroke="currentColor" fill="none" viewBox="0 0 8 8">
                     <path strokeLinecap="round" strokeWidth="1.5" d="M1 1l6 6m0-6L1 7" />
                   </svg>

@@ -16,7 +16,7 @@ export async function GET(request: Request) {
     const limit = parseInt(searchParams.get('limit') || '10');
     const search = searchParams.get('search') || '';
     const isRemote = searchParams.get('isRemote') === 'true';
-    const company = searchParams.get('company') || '';
+    const site = searchParams.get('site') || '';
     
     // Calculate pagination
     const skip = (page - 1) * limit;
@@ -36,9 +36,9 @@ export async function GET(request: Request) {
       };
     }
     
-    // Add company filter if provided
-    if (company) {
-      query.company = { $regex: company, $options: 'i' };
+    // Add site filter if provided
+    if (site) {
+      query.site = site; // Exact match for site as it's a specific value
     }
     
     // Add remote filter if requested

@@ -14,13 +14,13 @@ export default function FilterBarClient({ initialFilters = {} }: FilterBarClient
   const searchParams = useSearchParams();
   
   const [isRemote, setIsRemote] = useState(initialFilters.isRemote || false);
-  const [company, setCompany] = useState(initialFilters.company || '');
+  const [site, setSite] = useState(initialFilters.site || '');
 
   // Common companies - you could fetch this from the API dynamically in a real app
   const commonCompanies = ['Google', 'Microsoft', 'Amazon', 'Principal Financial Group'];
 
   // Check if any filters are active
-  const hasActiveFilters = isRemote || company !== '';
+  const hasActiveFilters = isRemote || site !== '';
 
   // Apply filters function
   const applyFilters = () => {
@@ -35,10 +35,10 @@ export default function FilterBarClient({ initialFilters = {} }: FilterBarClient
     }
     
     // Update or remove company parameter
-    if (company) {
-      params.set('company', company);
+    if (site) {
+      params.set('site', site);
     } else {
-      params.delete('company');
+      params.delete('site');
     }
     
     // Reset to page 1 when filtering
@@ -51,12 +51,12 @@ export default function FilterBarClient({ initialFilters = {} }: FilterBarClient
   // Apply filters when they change
   useEffect(() => {
     applyFilters();
-  }, [isRemote, company]);
+  }, [isRemote, site]);
 
   // Clear all filters
   const clearFilters = () => {
     setIsRemote(false);
-    setCompany('');
+    setSite('');
   };
 
   return (
@@ -104,28 +104,13 @@ export default function FilterBarClient({ initialFilters = {} }: FilterBarClient
 
           {/* Company Filter using reusable component */}
           <SelectDropdown
-            id="company-filter"
-            label="Company"
-            value={company}
-            onChange={setCompany}
+            id="site-filter"
+            label="Site"
+            value={site}
+            onChange={setSite}
             options={[
-              { value: '', label: 'All Companies' },
-              ...commonCompanies.map(company => ({ value: company, label: company }))
-            ]}
-          />
-
-          {/* Additional filter placeholders using reusable component */}
-          <SelectDropdown
-            id="job-level"
-            label="Job Level"
-            value=""
-            onChange={() => {}}
-            options={[
-              { value: '', label: 'Any Level' },
-              { value: 'entry', label: 'Entry Level' },
-              { value: 'mid', label: 'Mid Level' },
-              { value: 'senior', label: 'Senior Level' },
-              { value: 'executive', label: 'Executive' }
+              { value: '', label: 'All Sites' },
+              ...commonCompanies.map(site => ({ value: site, label: site }))
             ]}
           />
 
@@ -150,15 +135,15 @@ export default function FilterBarClient({ initialFilters = {} }: FilterBarClient
                 </button>
               </span>
             )}
-            {company && (
+            {site && (
               <span className="inline-flex items-center rounded-full bg-indigo-100 px-3 py-0.5 text-xs font-medium text-indigo-800">
-                Company: {company}
+                Site: {site}
                 <button
                   type="button"
-                  onClick={() => setCompany('')}
+                  onClick={() => setSite('')}
                   className="ml-1 inline-flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full text-indigo-600 hover:bg-indigo-200 hover:text-indigo-800 focus:bg-indigo-500 focus:text-white focus:outline-none"
                 >
-                  <span className="sr-only">Remove company filter</span>
+                  <span className="sr-only">Remove site filter</span>
                   <svg className="h-2 w-2" stroke="currentColor" fill="none" viewBox="0 0 8 8">
                     <path strokeLinecap="round" strokeWidth="1.5" d="M1 1l6 6m0-6L1 7" />
                   </svg>

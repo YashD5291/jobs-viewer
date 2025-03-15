@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter, useSearchParams } from 'next/navigation';
 import JobsTable from "@/components/JobsTable";
 import Pagination from "@/components/Pagination";
 import SearchBar from "@/components/SearchBar";
@@ -9,21 +10,38 @@ import { fetchJobs } from "@/lib/api";
 import { Job, PaginationData } from "@/types";
 
 export default function Home() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  
+  // Initialize state from URL params
   const [jobs, setJobs] = useState<Job[]>([]);
   const [pagination, setPagination] = useState<PaginationData>({
     total: 0,
-    page: 1,
-    limit: 50, // Default page size changed to 50
+    page: Number(searchParams.get('page')) || 1,
+    limit: Number(searchParams.get('limit')) || 50,
     pages: 0,
   });
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(searchParams.get('search') || "");
   const [filters, setFilters] = useState<FilterOptions>({
-    isRemote: false,
-    company: "",
+    isRemote: searchParams.get('remote') === 'true',
+    site: searchParams.get('site') || "",
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  // FilterBar is now always visible
+
+  // Update URL with current state
+  const updateUrl = useCallback(() => {
+    const params = new URLSearchParams();
+    
+    if (pagination.page !== 1) params.set('page', pagination.page.toString());
+    if (pagination.limit !== 50) params.set('limit', pagination.limit.toString());
+    if (search) params.set('search', search);
+    if (filters.isRemote) params.set('remote', 'true');
+    if (filters.site) params.set('site', filters.site);
+    
+    const url = params.toString() ? `?${params.toString()}` : '';
+    router.push(url);
+  }, [pagination.page, pagination.limit, search, filters.isRemote, filters.site, router]);
 
   // Memoize the loadJobs function to prevent it from changing on every render
   const loadJobs = useCallback(async (
@@ -31,12 +49,12 @@ export default function Home() {
     limit: number, 
     searchTerm: string, 
     isRemote: boolean = false, 
-    company: string = ""
+    site: string = ""
   ) => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetchJobs(page, limit, searchTerm, isRemote, company);
+      const response = await fetchJobs(page, limit, searchTerm, isRemote, site);
       if (response.success) {
         setJobs(response.data.jobs);
         setPagination(response.data.pagination);
@@ -51,10 +69,15 @@ export default function Home() {
     }
   }, []);
 
+  // Update URL when state changes
+  useEffect(() => {
+    updateUrl();
+  }, [pagination.page, pagination.limit, search, filters.isRemote, filters.site, updateUrl]);
+
   // Initial data load
   useEffect(() => {
-    loadJobs(pagination.page, pagination.limit, search, filters.isRemote, filters.company);
-  }, [loadJobs, pagination.page, pagination.limit, search, filters.isRemote, filters.company]);
+    loadJobs(pagination.page, pagination.limit, search, filters.isRemote, filters.site);
+  }, [loadJobs, pagination.page, pagination.limit, search, filters.isRemote, filters.site]);
 
   // Memoize handler functions to maintain stable references
   const handlePageChange = useCallback((page: number) => {
@@ -65,23 +88,23 @@ export default function Home() {
   
   const handleRowsPerPageChange = useCallback((limit: number) => {
     setPagination((prev) => ({ ...prev, page: 1, limit }));
-    loadJobs(1, limit, search, filters.isRemote, filters.company);
+    loadJobs(1, limit, search, filters.isRemote, filters.site);
     // Scroll back to top when changing page size
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [loadJobs, search, filters.isRemote, filters.company]);
+  }, [loadJobs, search, filters.isRemote, filters.site]);
 
   const handleSearch = useCallback((searchTerm: string) => {
     setSearch(searchTerm);
-    loadJobs(1, pagination.limit, searchTerm, filters.isRemote, filters.company);
-  }, [loadJobs, pagination.limit, filters.isRemote, filters.company]);
+    loadJobs(1, pagination.limit, searchTerm, filters.isRemote, filters.site);
+  }, [loadJobs, pagination.limit, filters.isRemote, filters.site]);
 
   const handleFilterChange = useCallback((newFilters: FilterOptions) => {
     setFilters(newFilters);
-    loadJobs(1, pagination.limit, search, newFilters.isRemote, newFilters.company);
+    loadJobs(1, pagination.limit, search, newFilters.isRemote, newFilters.site);
   }, [loadJobs, pagination.limit, search]);
 
   // Check if any filters are active
-  const hasActiveFilters = filters.isRemote || filters.company !== "";
+  const hasActiveFilters = filters.isRemote || filters.site !== "";
 
   return (
     <div className="min-h-screen bg-gray-50">
