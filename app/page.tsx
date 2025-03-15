@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from 'next/navigation';
 import JobsTable from "@/components/JobsTable";
 import Pagination from "@/components/Pagination";
@@ -9,7 +9,8 @@ import FilterBar, { FilterOptions } from "@/components/FilterBar";
 import { fetchJobs } from "@/lib/api";
 import { Job, PaginationData } from "@/types";
 
-export default function Home() {
+// Separate client component that uses search params
+function JobsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
@@ -181,5 +182,61 @@ export default function Home() {
         </div>
       </footer>
     </div>
+  );
+}
+
+// Loading fallback component
+function LoadingJobsContent() {
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md">
+        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+          <h1 className="text-3xl font-bold tracking-tight">Job Hunt Dashboard</h1>
+          <p className="mt-2 text-indigo-100">Find your dream job from thousands of listings</p>
+        </div>
+      </header>
+      
+      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div className="px-4 sm:px-0 space-y-6">
+          <div className="bg-white rounded-xl shadow-md p-6">
+            <div className="animate-pulse">
+              <div className="h-6 bg-gray-200 rounded w-1/4 mb-6"></div>
+              <div className="h-10 bg-gray-200 rounded mb-4"></div>
+              <div className="h-24 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+          
+          <div className="bg-white shadow-md rounded-xl overflow-hidden">
+            <div className="border-b border-gray-200 px-6 py-4">
+              <div className="h-6 bg-gray-200 rounded w-1/3"></div>
+            </div>
+            <div className="p-6">
+              <div className="animate-pulse space-y-4">
+                <div className="h-20 bg-gray-200 rounded"></div>
+                <div className="h-20 bg-gray-200 rounded"></div>
+                <div className="h-20 bg-gray-200 rounded"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+      
+      <footer className="bg-white border-t border-gray-200 mt-12">
+        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+          <p className="text-center text-sm text-gray-500">
+            Job Hunt Dashboard © {new Date().getFullYear()} - Find your dream job today
+          </p>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+// The main component that wraps the client component in Suspense
+export default function Home() {
+  return (
+    <Suspense fallback={<LoadingJobsContent />}>
+      <JobsContent />
+    </Suspense>
   );
 }
