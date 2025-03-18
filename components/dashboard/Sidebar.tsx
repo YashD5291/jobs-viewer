@@ -17,11 +17,11 @@ interface NavItem {
 }
 
 const navigation: NavItem[] = [
-  { name: "Dashboard", href: "/", icon: LayoutDashboard },
-  { name: "LinkedIn", href: "/linkedin", icon: Linkedin },
-  { name: "Indeed", href: "/indeed", icon: BriefcaseBusiness },
-  { name: "Google", href: "/google", icon: Search },
-  { name: "Glassdoor", href: "/glassdoor", icon: BarChart3 },
+  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { name: "LinkedIn", href: "/dashboard/linkedin", icon: Linkedin },
+  { name: "Indeed", href: "/dashboard/indeed", icon: BriefcaseBusiness },
+  { name: "Google", href: "/dashboard/google", icon: Search },
+  { name: "Glassdoor", href: "/dashboard/glassdoor", icon: BarChart3 },
 ];
 
 export default function Sidebar() {
@@ -38,8 +38,8 @@ export default function Sidebar() {
       <nav className="flex-1 space-y-1">
         {navigation.map((item) => {
           const isActive = 
-            (item.href === "/" && pathname === "/") || 
-            (item.href !== "/" && pathname.startsWith(item.href));
+            (item.href === "/dashboard" && pathname === "/dashboard") || 
+            (item.href !== "/dashboard" && pathname.startsWith(item.href));
             
           return (
             <Link
