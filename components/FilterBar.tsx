@@ -2,17 +2,22 @@ import React, { useState, useEffect } from 'react';
 import SelectDropdown from './SelectDropdown';
 
 export interface FilterOptions {
-  isRemote?: boolean;
+  isRemote: boolean;
   site?: string;
 }
 
 interface FilterBarProps {
   onFilterChange: (filters: FilterOptions) => void;
   initialFilters?: FilterOptions;
+  disableSiteFilter?: boolean;
 }
 
-export default function FilterBar({ onFilterChange, initialFilters = {} }: FilterBarProps) {
-  const [isRemote, setIsRemote] = useState(initialFilters.isRemote || false);
+export default function FilterBar({ 
+  onFilterChange, 
+  initialFilters = { isRemote: false }, 
+  disableSiteFilter = false 
+}: FilterBarProps) {
+  const [isRemote, setIsRemote] = useState(initialFilters.isRemote);
   const [site, setSite] = useState(initialFilters.site || '');
 
   // Job sites
@@ -36,7 +41,9 @@ export default function FilterBar({ onFilterChange, initialFilters = {} }: Filte
           <button
             onClick={() => {
               setIsRemote(false);
-              setSite('');
+              if (!disableSiteFilter) {
+                setSite('');
+              }
             }}
             disabled={!hasActiveFilters}
             className={`flex items-center text-sm ${hasActiveFilters
@@ -72,21 +79,22 @@ export default function FilterBar({ onFilterChange, initialFilters = {} }: Filte
             </div>
           </div>
 
-          {/* Site Filter using reusable component */}
-          <SelectDropdown
-            id="site-filter"
-            label="Job Site"
-            value={site}
-            onChange={setSite}
-            options={[
-              { value: '', label: 'All Sites' },
-              ...jobSites.map(site => ({ 
-                value: site, 
-                label: site.charAt(0).toUpperCase() + site.slice(1) 
-              }))
-            ]}
-          />
-
+          {/* Site Filter using reusable component - conditionally rendered */}
+          {!disableSiteFilter && (
+            <SelectDropdown
+              id="site-filter"
+              label="Job Site"
+              value={site}
+              onChange={setSite}
+              options={[
+                { value: '', label: 'All Sites' },
+                ...jobSites.map(site => ({ 
+                  value: site, 
+                  label: site.charAt(0).toUpperCase() + site.slice(1) 
+                }))
+              ]}
+            />
+          )}
         </div>
 
         {/* Active Filters Display */}
@@ -108,7 +116,7 @@ export default function FilterBar({ onFilterChange, initialFilters = {} }: Filte
                 </button>
               </span>
             )}
-            {site && (
+            {site && !disableSiteFilter && (
               <span className="inline-flex items-center rounded-full bg-indigo-100 px-3 py-0.5 text-xs font-medium text-indigo-800">
                 Site: {site.charAt(0).toUpperCase() + site.slice(1)}
                 <button

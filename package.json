@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.69.0",
+    "lucide-react": "^0.483.0",
     "mongoose": "^8.12.1",
     "next": "15.2.1",
     "react": "^19.0.0",

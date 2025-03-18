@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server';
 import connectToDatabase from '@/lib/db';
 import Job from '@/models/Job';
 import mongoose from 'mongoose';
+import { revalidatePath } from 'next/cache';
+
+// Enable Response Caching for this route
+export const revalidate = 300; // Cache for 5 minutes (300 seconds)
 
 export async function GET(request: Request) {
   try {

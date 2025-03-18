@@ -9,11 +9,11 @@ interface FilterBarClientProps {
   initialFilters?: FilterOptions;
 }
 
-export default function FilterBarClient({ initialFilters = {} }: FilterBarClientProps) {
+export default function FilterBarClient({ initialFilters = { isRemote: false } }: FilterBarClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   
-  const [isRemote, setIsRemote] = useState(initialFilters.isRemote || false);
+  const [isRemote, setIsRemote] = useState(initialFilters.isRemote);
   const [site, setSite] = useState(initialFilters.site || '');
 
   // Common companies - you could fetch this from the API dynamically in a real app

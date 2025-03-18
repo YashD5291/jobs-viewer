@@ -35,31 +35,51 @@ export default function JobsTable({ jobs, isLoading = false }: JobsTableProps) {
     );
   }
 
-  // Function to check if a date is today
-  const isToday = (dateString: string) => {
-    const date = new Date(dateString);
-    const today = new Date();
-    return date.getDate() === today.getDate() &&
-      date.getMonth() === today.getMonth() &&
-      date.getFullYear() === today.getFullYear();
-  };
-
-  // Function to format date in a nice way
+  // Function to format date in a more granular way
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const diffMinutes = Math.floor(diffTime / (1000 * 60));
+    const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-    if (diffDays <= 1) return 'Today';
-    if (diffDays <= 2) return 'Yesterday';
-    if (diffDays <= 5) return `${diffDays} days ago`;
+    // Show minutes if less than 60 minutes ago
+    if (diffMinutes < 1) return 'Just now';
+    if (diffMinutes < 60) return `${diffMinutes} ${diffMinutes === 1 ? 'minute' : 'minutes'} ago`;
+    
+    // Show hours if less than 24 hours ago
+    if (diffHours < 24) return `${diffHours} ${diffHours === 1 ? 'hour' : 'hours'} ago`;
+    
+    // Show days for recent dates
+    if (diffDays < 7) return `${diffDays} ${diffDays === 1 ? 'day' : 'days'} ago`;
 
+    // Use standard date format for older dates
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
     });
+  };
+
+  // Function to check if a job was added recently (within the last 24 hours)
+  const isRecentlyAdded = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+    
+    return diffHours < 24; // Within the last 24 hours
+  };
+
+  // Function to check if a job was added very recently (within the last hour)
+  const isVeryRecentlyAdded = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+    
+    return diffHours < 1; // Within the last hour
   };
 
   // Function to toggle job expansion
@@ -76,12 +96,13 @@ export default function JobsTable({ jobs, isLoading = false }: JobsTableProps) {
       <ul className="divide-y divide-gray-100">
         {jobs.map((job) => {
           const isExpanded = expandedJobId === job._id;
-          const isAddedToday = job?.added_on ? formatDate(job?.added_on) === 'Today' : false;
+          const isAddedRecently = job?.added_on ? isRecentlyAdded(job?.added_on) : false;
+          const isAddedVeryRecently = job?.added_on ? isVeryRecentlyAdded(job?.added_on) : false;
 
           return (
             <li
               key={job._id}
-              className={`transition-all duration-300 ${isAddedToday
+              className={`transition-all duration-300 ${isAddedRecently
                 ? 'bg-blue-50 hover:bg-blue-100 border-l-4 border-blue-500'
                 : 'hover:bg-gray-50'
                 }`}
@@ -101,9 +122,14 @@ export default function JobsTable({ jobs, isLoading = false }: JobsTableProps) {
                           <h3 className="text-lg font-semibold text-gray-900 group-hover:text-indigo-600">
                             {job.title}
                           </h3>
-                          {isAddedToday && (
+                          {isAddedVeryRecently && (
                             <span className="ml-2 inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 animate-pulse">
                               New
+                            </span>
+                          )}
+                          {isAddedRecently && !isAddedVeryRecently && (
+                            <span className="ml-2 inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-600">
+                              Today
                             </span>
                           )}
                         </div>
@@ -117,7 +143,7 @@ export default function JobsTable({ jobs, isLoading = false }: JobsTableProps) {
                           )}
                           <span className="mx-1 text-gray-300">&middot;</span>
                           {job?.added_on && (
-                            <span className={`text-xs ${isAddedToday ? 'font-semibold text-blue-600' : 'text-gray-500'}`}>
+                            <span className={`text-xs ${isAddedRecently ? 'font-semibold text-blue-600' : 'text-gray-500'}`}>
                               Added {formatDate(job?.added_on)}
                             </span>
                           )}
@@ -178,9 +204,11 @@ export default function JobsTable({ jobs, isLoading = false }: JobsTableProps) {
                         href={job.job_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className={`inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white ${isAddedToday
+                        className={`inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white ${isAddedVeryRecently
                           ? 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'
-                          : 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500'
+                          : isAddedRecently
+                            ? 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500'
+                            : 'bg-gray-600 hover:bg-gray-700 focus:ring-gray-500'
                           } focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-200`}
                       >
                         Apply Now
@@ -196,8 +224,13 @@ export default function JobsTable({ jobs, isLoading = false }: JobsTableProps) {
 
                     <button
                       onClick={() => toggleJobExpansion(job._id)}
-                      className={`inline-flex items-center text-sm ${isAddedToday ? 'text-blue-600 hover:text-blue-800' : 'text-indigo-600 hover:text-indigo-800'
-                        } transition-colors duration-200`}
+                      className={`inline-flex items-center text-sm ${
+                        isAddedVeryRecently 
+                          ? 'text-blue-600 hover:text-blue-800' 
+                          : isAddedRecently
+                            ? 'text-indigo-600 hover:text-indigo-800'
+                            : 'text-gray-600 hover:text-gray-800'
+                      } transition-colors duration-200`}
                     >
                       {isExpanded ? 'Show Less' : 'Show More'}
                       <svg
