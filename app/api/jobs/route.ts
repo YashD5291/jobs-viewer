@@ -4,6 +4,9 @@ import Job from '@/models/Job';
 import mongoose from 'mongoose';
 import { revalidatePath } from 'next/cache';
 
+// Make this route dynamic since we use request.url
+export const dynamic = 'force-dynamic';
+
 // Enable Response Caching for this route
 export const revalidate = 300; // Cache for 5 minutes (300 seconds)
 
