@@ -40,13 +40,20 @@ export default function JobsTable({ jobs, isLoading = false }: JobsTableProps) {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffMinutes = Math.floor(diffTime / (1000 * 60));
-    const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    // Calculate difference in milliseconds
+    const diffTime = now.getTime() - date.getTime();
+    
+    // Convert to appropriate time units
+    const diffSeconds = Math.floor(diffTime / 1000);
+    const diffMinutes = Math.floor(diffSeconds / 60);
+    const diffHours = Math.floor(diffMinutes / 60);
+    const diffDays = Math.floor(diffHours / 24);
 
+    // Show seconds if less than a minute ago
+    if (diffSeconds < 60) return diffSeconds <= 5 ? 'Just now' : `${diffSeconds} seconds ago`;
+    
     // Show minutes if less than 60 minutes ago
-    if (diffMinutes < 1) return 'Just now';
     if (diffMinutes < 60) return `${diffMinutes} ${diffMinutes === 1 ? 'minute' : 'minutes'} ago`;
 
     // Show hours if less than 24 hours ago
@@ -67,8 +74,8 @@ export default function JobsTable({ jobs, isLoading = false }: JobsTableProps) {
   const isRecentlyAdded = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+    const diffTime = now.getTime() - date.getTime();
+    const diffHours = diffTime / (1000 * 60 * 60);
 
     return diffHours < 24; // Within the last 24 hours
   };
@@ -77,10 +84,10 @@ export default function JobsTable({ jobs, isLoading = false }: JobsTableProps) {
   const isVeryRecentlyAdded = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+    const diffTime = now.getTime() - date.getTime();
+    const diffMinutes = diffTime / (1000 * 60);
 
-    return diffHours < 1; // Within the last hour
+    return diffMinutes < 60; // Within the last hour
   };
 
   // Function to toggle job expansion

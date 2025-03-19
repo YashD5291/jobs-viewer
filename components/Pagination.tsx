@@ -55,7 +55,6 @@ export default function Pagination({ pagination, onPageChange, onRowsPerPageChan
                 className={`block w-20 rounded-md border-gray-300 bg-white ${theme === 'dark' ? 'bg-gray-900' : ''} py-1 pl-3 pr-3 text-gray-700 ${theme === 'dark' ? 'text-gray-300' : ''} focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 text-sm transition-colors duration-200 appearance-none`}
                 style={{ backgroundImage: 'none' }}
               >
-                <option value="10">10</option>
                 <option value="25">25</option>
                 <option value="50">50</option>
                 <option value="100">100</option>

@@ -17,7 +17,7 @@ export default function IndeedJobsPage() {
   const initialPagination: PaginationData = {
     total: 0,
     page: 1,
-    limit: 20,
+    limit: 50,
     pages: 0,
   };
 

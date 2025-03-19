@@ -12,6 +12,7 @@ export interface StatsData {
   indeedJobs: number;
   googleJobs: number;
   glassdoorJobs: number;
+  zipRecruiterJobs: number;
 }
 
 // Default empty stats
@@ -22,6 +23,7 @@ const defaultStats: StatsData = {
   indeedJobs: 0,
   googleJobs: 0,
   glassdoorJobs: 0,
+  zipRecruiterJobs: 0,
 };
 
 // Create the context with default values
@@ -36,7 +38,7 @@ const StatsContext = createContext<StatsContextType>({
   stats: defaultStats,
   isLoading: false,
   error: null,
-  refetch: async () => {},
+  refetch: async () => { },
 });
 
 // Hook to use the stats context
@@ -45,9 +47,9 @@ export const useStats = () => useContext(StatsContext);
 // The provider component
 export function StatsProvider({ children }: { children: ReactNode }) {
   // Fetch stats with React Query
-  const { 
-    data, 
-    isLoading, 
+  const {
+    data,
+    isLoading,
     error,
     refetch
   } = useQuery({
@@ -65,11 +67,11 @@ export function StatsProvider({ children }: { children: ReactNode }) {
   const stats = data || defaultStats;
 
   return (
-    <StatsContext.Provider value={{ 
-      stats, 
-      isLoading, 
+    <StatsContext.Provider value={{
+      stats,
+      isLoading,
       error: error as Error | null,
-      refetch 
+      refetch
     }}>
       {children}
     </StatsContext.Provider>

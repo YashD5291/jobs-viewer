@@ -7,7 +7,8 @@ import {
   BriefcaseBusiness,
   Search,
   Linkedin,
-  BarChart3
+  BarChart3,
+  Rabbit
 } from "lucide-react";
 import { useTheme } from "@/lib/context/ThemeContext";
 
@@ -23,6 +24,7 @@ const navigation: NavItem[] = [
   { name: "Indeed", href: "/indeed", icon: BriefcaseBusiness },
   { name: "Google", href: "/google", icon: Search },
   { name: "Glassdoor", href: "/glassdoor", icon: BarChart3 },
+  { name: "Zip Recruiter", href: "/zip_recruiter", icon: Rabbit },
 ];
 
 export default function Sidebar() {
@@ -67,7 +69,7 @@ export default function Sidebar() {
       <div className={`pt-4 mt-6 border-t ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
         <div className={`flex items-center px-2 py-2 text-sm font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
           <span className="mr-1">©</span>
-          {new Date().getFullYear()} Jobs Viewer
+          {new Date().getFullYear()} The Merovingian
         </div>
       </div>
     </div>

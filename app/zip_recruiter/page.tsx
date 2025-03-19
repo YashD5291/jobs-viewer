@@ -11,7 +11,8 @@ import { useStats } from "@/lib/context/StatsContext";
 import { usePaginationWithCache } from "@/lib/hooks/usePaginationWithCache";
 import { useTheme } from "@/lib/context/ThemeContext";
 
-export default function GlassdoorJobsPage() {
+export default function ZipRecruiterJobsPage() {
+
   const { theme } = useTheme();
   // Initial pagination state
   const initialPagination: PaginationData = {
@@ -29,7 +30,7 @@ export default function GlassdoorJobsPage() {
     handlePageChange,
     handleRowsPerPageChange,
     handleSearch
-  } = usePaginationWithCache(initialPagination, "glassdoor");
+  } = usePaginationWithCache(initialPagination, "zip_recruiter");
 
   // Use the global stats context
   const { stats } = useStats();
@@ -45,7 +46,7 @@ export default function GlassdoorJobsPage() {
       pagination.limit,
       search,
       false,
-      "glassdoor"
+      "zip_recruiter"
     ),
     queryFn: async () => {
       const response = await fetchJobs(
@@ -53,7 +54,7 @@ export default function GlassdoorJobsPage() {
         pagination.limit,
         search,
         false,
-        "glassdoor"
+        "zip_recruiter"
       );
 
       if (response.success) {
@@ -62,18 +63,18 @@ export default function GlassdoorJobsPage() {
         return response.data;
       }
 
-      throw new Error("Failed to load Glassdoor jobs");
+      throw new Error("Failed to load Zip Recruiter jobs");
     },
   });
 
   const jobs = data?.jobs || [];
-  const error = queryError ? "Failed to load Glassdoor jobs" : null;
+  const error = queryError ? "Failed to load Zip Recruiter jobs" : null;
 
   return (
     <div className="py-6 px-4 sm:px-6 lg:px-8">
       <PageTitle
-        title="Glassdoor Jobs"
-        description="Browse job listings from Glassdoor"
+        title="Zip Recruiter Jobs"
+        description="Browse job listings from Zip Recruiter"
       />
 
       <div className="space-y-6">
@@ -88,7 +89,7 @@ export default function GlassdoorJobsPage() {
         <div className={`bg-white shadow-md rounded-lg overflow-hidden ${theme === 'dark' ? 'dark:bg-gray-900 dark:shadow-gray-800 dark:bg-gray-900' : ''}`}>
           <div className={`px-6 py-4 border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
             <h2 className={`text-lg font-medium ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}>
-              Total {stats.glassdoorJobs.toLocaleString()} Glassdoor Jobs
+              Total {stats.zipRecruiterJobs.toLocaleString()} Zip Recruiter Jobs
             </h2>
           </div>
 
