@@ -2,9 +2,6 @@ import { NextResponse } from 'next/server';
 import connectToDatabase from '@/lib/db';
 import mongoose from 'mongoose';
 
-// Mark this route as dynamic since it connects to a database and performs dynamic operations
-export const dynamic = 'force-dynamic';
-
 export async function GET() {
   try {
     // Connect to the database

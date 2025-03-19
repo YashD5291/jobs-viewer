@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ReactQueryProvider } from "@/lib/react-query-provider";
-
+import { StatsProvider } from "@/lib/context/StatsContext";
+import { ThemeProvider } from "@/lib/context/ThemeContext";
+import DashboardLayout from "@/components/dashboard/DashboardLayout";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -24,11 +26,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased h-full`}
       >
-        <ReactQueryProvider>{children}</ReactQueryProvider>
+        <ReactQueryProvider>
+          <StatsProvider>
+            <ThemeProvider>
+              <DashboardLayout>{children}</DashboardLayout>
+            </ThemeProvider>
+          </StatsProvider>
+        </ReactQueryProvider>
       </body>
     </html>
   );

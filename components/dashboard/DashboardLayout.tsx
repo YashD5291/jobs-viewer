@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
+import { useTheme } from "@/lib/context/ThemeContext";
 
 export default function DashboardLayout({
   children,
@@ -10,12 +11,13 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const { theme } = useTheme();
 
   return (
     <div className="h-screen flex flex-col">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-gray-600 bg-opacity-75 z-20 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
@@ -39,7 +41,7 @@ export default function DashboardLayout({
       {/* Main content */}
       <div className="lg:pl-64 flex flex-col flex-1">
         <Header onMobileMenuToggle={() => setSidebarOpen(true)} />
-        <main className="flex-1 overflow-y-auto bg-gray-50">
+        <main className={`flex-1 overflow-y-auto ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'}`}>
           {children}
         </main>
       </div>

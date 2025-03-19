@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { 
-  LayoutDashboard, 
-  BriefcaseBusiness, 
-  Search, 
-  Linkedin, 
-  BarChart3 
+import {
+  LayoutDashboard,
+  BriefcaseBusiness,
+  Search,
+  Linkedin,
+  BarChart3
 } from "lucide-react";
+import { useTheme } from "@/lib/context/ThemeContext";
 
 interface NavItem {
   name: string;
@@ -17,45 +18,44 @@ interface NavItem {
 }
 
 const navigation: NavItem[] = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "LinkedIn", href: "/dashboard/linkedin", icon: Linkedin },
-  { name: "Indeed", href: "/dashboard/indeed", icon: BriefcaseBusiness },
-  { name: "Google", href: "/dashboard/google", icon: Search },
-  { name: "Glassdoor", href: "/dashboard/glassdoor", icon: BarChart3 },
+  { name: "Dashboard", href: "/", icon: LayoutDashboard },
+  { name: "LinkedIn", href: "/linkedin", icon: Linkedin },
+  { name: "Indeed", href: "/indeed", icon: BriefcaseBusiness },
+  { name: "Google", href: "/google", icon: Search },
+  { name: "Glassdoor", href: "/glassdoor", icon: BarChart3 },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const { theme } = useTheme();
 
   return (
-    <div className="flex flex-col h-full px-3 py-4 bg-white border-r">
+    <div className={`flex flex-col h-full px-3 py-4 ${theme === 'dark' ? 'bg-gray-900' : 'bg-white'} border-r ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
       <div className="flex items-center mb-6 pl-2">
         <span className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 text-transparent bg-clip-text">
-          Jobs Viewer
+          The Aggregator
         </span>
       </div>
-      
+
       <nav className="flex-1 space-y-1">
         {navigation.map((item) => {
-          const isActive = 
-            (item.href === "/dashboard" && pathname === "/dashboard") || 
-            (item.href !== "/dashboard" && pathname.startsWith(item.href));
-            
+
+          const isActive = pathname === item.href;
+
           return (
             <Link
               key={item.name}
               href={item.href}
               className={`
                 flex items-center px-2 py-2 text-sm font-medium rounded-md group
-                ${isActive 
-                  ? "bg-indigo-50 text-indigo-600" 
-                  : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"}
+                ${isActive
+                  ? `bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 ${theme === 'dark' ? 'text-indigo-400' : 'text-indigo-600'}`
+                  : `text-gray-700 hover:bg-gray-200 ${theme === 'dark' ? 'dark:hover:bg-gray-800 dark:text-gray-300 dark:hover:text-gray-100' : 'hover:text-gray-900'}`}
               `}
             >
               <item.icon
-                className={`mr-3 h-5 w-5 flex-shrink-0 ${
-                  isActive ? "text-indigo-600" : "text-gray-400 group-hover:text-gray-500"
-                }`}
+                className={`mr-3 h-5 w-5 flex-shrink-0 ${isActive ? "text-indigo-600 ${theme === 'dark' ? 'text-indigo-400' : 'text-indigo-600'}" : "text-gray-400 dark:text-gray-500 group-hover:text-gray-500 dark:group-hover:text-gray-400"
+                  }`}
                 aria-hidden="true"
               />
               {item.name}
@@ -63,9 +63,9 @@ export default function Sidebar() {
           );
         })}
       </nav>
-      
-      <div className="pt-4 mt-6 border-t border-gray-200">
-        <div className="flex items-center px-2 py-2 text-sm font-medium text-gray-600">
+
+      <div className={`pt-4 mt-6 border-t ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+        <div className={`flex items-center px-2 py-2 text-sm font-medium ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
           <span className="mr-1">©</span>
           {new Date().getFullYear()} Jobs Viewer
         </div>

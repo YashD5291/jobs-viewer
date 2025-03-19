@@ -3,7 +3,7 @@
 import { Job } from '@/types';
 import Link from 'next/link';
 import { useState } from 'react';
-
+import { useTheme } from "@/lib/context/ThemeContext";
 interface JobsTableProps {
   jobs: Job[];
   isLoading?: boolean;
@@ -11,13 +11,14 @@ interface JobsTableProps {
 
 export default function JobsTable({ jobs, isLoading = false }: JobsTableProps) {
   const [expandedJobId, setExpandedJobId] = useState<string | null>(null);
+  const { theme } = useTheme();
 
   if (isLoading) {
     return (
       <div className="min-w-full p-8">
         <div className="flex flex-col items-center justify-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
-          <p className="mt-4 text-gray-500 text-sm">Loading job listings...</p>
+          <p className="mt-4 text-gray-500 dark:text-gray-400 text-sm">Loading job listings...</p>
         </div>
       </div>
     );
@@ -26,11 +27,11 @@ export default function JobsTable({ jobs, isLoading = false }: JobsTableProps) {
   if (jobs.length === 0) {
     return (
       <div className="text-center py-12 px-4">
-        <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+        <svg className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
-        <h3 className="mt-2 text-sm font-medium text-gray-900">No job listings found</h3>
-        <p className="mt-1 text-sm text-gray-500">Try adjusting your search or filter criteria.</p>
+        <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No job listings found</h3>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Try adjusting your search or filter criteria.</p>
       </div>
     );
   }
@@ -47,10 +48,10 @@ export default function JobsTable({ jobs, isLoading = false }: JobsTableProps) {
     // Show minutes if less than 60 minutes ago
     if (diffMinutes < 1) return 'Just now';
     if (diffMinutes < 60) return `${diffMinutes} ${diffMinutes === 1 ? 'minute' : 'minutes'} ago`;
-    
+
     // Show hours if less than 24 hours ago
     if (diffHours < 24) return `${diffHours} ${diffHours === 1 ? 'hour' : 'hours'} ago`;
-    
+
     // Show days for recent dates
     if (diffDays < 7) return `${diffDays} ${diffDays === 1 ? 'day' : 'days'} ago`;
 
@@ -68,7 +69,7 @@ export default function JobsTable({ jobs, isLoading = false }: JobsTableProps) {
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - date.getTime());
     const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
-    
+
     return diffHours < 24; // Within the last 24 hours
   };
 
@@ -78,7 +79,7 @@ export default function JobsTable({ jobs, isLoading = false }: JobsTableProps) {
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - date.getTime());
     const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
-    
+
     return diffHours < 1; // Within the last hour
   };
 
@@ -92,8 +93,8 @@ export default function JobsTable({ jobs, isLoading = false }: JobsTableProps) {
   };
 
   return (
-    <div className="bg-white divide-y divide-gray-100">
-      <ul className="divide-y divide-gray-100">
+    <div className={`${theme === 'dark' ? 'bg-gray-900' : 'bg-white'} divide-y divide-gray-100 dark:divide-gray-800`}>
+      <ul className="divide-y divide-gray-100 dark:divide-gray-800">
         {jobs.map((job) => {
           const isExpanded = expandedJobId === job._id;
           const isAddedRecently = job?.added_on ? isRecentlyAdded(job?.added_on) : false;
@@ -103,8 +104,8 @@ export default function JobsTable({ jobs, isLoading = false }: JobsTableProps) {
             <li
               key={job._id}
               className={`transition-all duration-300 ${isAddedRecently
-                ? 'bg-blue-50 hover:bg-blue-100 border-l-4 border-blue-500'
-                : 'hover:bg-gray-50'
+                ? `bg-blue-50 ${theme === 'dark' ? 'dark:bg-blue-900/20' : ''} hover:bg-blue-100 ${theme === 'dark' ? 'dark:hover:bg-blue-900/40' : ''} border-l-4 border-blue-500`
+                : `hover:bg-gray-50 ${theme === 'dark' ? 'dark:hover:bg-gray-800/80' : ''}`
                 }`}
             >
               <div className="p-4 sm:p-6">
@@ -119,36 +120,36 @@ export default function JobsTable({ jobs, isLoading = false }: JobsTableProps) {
 
                       <div className="sm:ml-4">
                         <div className="flex items-center">
-                          <h3 className="text-lg font-semibold text-gray-900 group-hover:text-indigo-600">
+                          <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} group-hover:text-indigo-600 ${theme === 'dark' ? 'dark:group-hover:text-indigo-400' : ''}`}>
                             {job.title}
                           </h3>
                           {isAddedVeryRecently && (
-                            <span className="ml-2 inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 animate-pulse">
+                            <span className={`ml-2 inline-flex items-center rounded-full ${theme === 'dark' ? 'bg-blue-100 dark:bg-blue-900/50' : 'bg-blue-100'} px-2.5 py-0.5 text-xs font-medium ${theme === 'dark' ? 'text-blue-800 dark:text-blue-300' : 'text-blue-800'} animate-pulse`}>
                               New
                             </span>
                           )}
                           {isAddedRecently && !isAddedVeryRecently && (
-                            <span className="ml-2 inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-600">
+                            <span className={`ml-2 inline-flex items-center rounded-full ${theme === 'dark' ? 'bg-blue-50 dark:bg-blue-900/30' : 'bg-blue-50'} px-2.5 py-0.5 text-xs font-medium ${theme === 'dark' ? 'text-blue-600 dark:text-blue-400' : 'text-blue-600'}`}>
                               Today
                             </span>
                           )}
                         </div>
-                        <div className="mt-1 flex items-center text-sm text-gray-700">
+                        <div className={`mt-1 flex items-center text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                           <span className="truncate">{job.company}</span>
                           {job.location && (
                             <>
-                              <span className="mx-1 text-gray-300">&middot;</span>
+                              <span className={`mx-1 ${theme === 'dark' ? 'text-gray-300 dark:text-gray-600' : ''}`}>&middot;</span>
                               <span className="truncate">{job.location}</span>
                             </>
                           )}
-                          <span className="mx-1 text-gray-300">&middot;</span>
+                          <span className={`mx-1 ${theme === 'dark' ? 'text-gray-300 dark:text-gray-600' : ''}`}>&middot;</span>
                           {job?.added_on && (
-                            <span className={`text-xs ${isAddedRecently ? 'font-semibold text-blue-600' : 'text-gray-500'}`}>
+                            <span className={`text-xs ${isAddedRecently ? 'font-semibold text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'}`}>
                               Added {formatDate(job?.added_on)}
                             </span>
                           )}
                           &nbsp;|&nbsp;
-                          <span className="text-gray-500 text-xs">
+                          <span className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                             Posted {formatDate(job.date_posted)}
                           </span>
                         </div>
@@ -156,16 +157,16 @@ export default function JobsTable({ jobs, isLoading = false }: JobsTableProps) {
                         {/* Tags */}
                         <div className="mt-2 flex flex-wrap gap-2">
                           {job.is_remote && (
-                            <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                            <span className={`inline-flex items-center rounded-full ${theme === 'dark' ? 'bg-green-100 dark:bg-green-900/30' : 'bg-green-100'} px-2.5 py-0.5 text-xs font-medium ${theme === 'dark' ? 'text-green-800 dark:text-green-300' : 'text-green-800'}`}>
                               Remote
                             </span>
                           )}
                           {job.job_level && (
-                            <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
+                            <span className={`inline-flex items-center rounded-full ${theme === 'dark' ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-blue-100'} px-2.5 py-0.5 text-xs font-medium ${theme === 'dark' ? 'text-blue-800 dark:text-blue-300' : 'text-blue-800'}`}>
                               {job.job_level}
                             </span>
                           )}
-                          <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800 capitalize">
+                          <span className={`inline-flex items-center rounded-full ${theme === 'dark' ? 'bg-gray-100 dark:bg-gray-800' : 'bg-gray-100'} px-2.5 py-0.5 text-xs font-medium ${theme === 'dark' ? 'text-gray-800 dark:text-gray-300' : 'text-gray-800'} capitalize`}>
                             {job.site}
                           </span>
                         </div>
@@ -174,12 +175,12 @@ export default function JobsTable({ jobs, isLoading = false }: JobsTableProps) {
 
                     {/* Expanded details section */}
                     {isExpanded && (
-                      <div className="mt-4 sm:ml-16 text-sm text-gray-500 animate-fadeIn">
+                      <div className={`mt-4 sm:ml-16 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} animate-fadeIn`}>
                         <div className="space-y-4">
                           {job.description ? (
                             <div>
-                              <h4 className="text-base font-medium text-gray-700 mb-2">Job Description</h4>
-                              <div className="prose prose-sm max-w-none">
+                              <h4 className={`text-base font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-2`}>Job Description</h4>
+                              <div className={`prose prose-sm ${theme === 'dark' ? 'dark:prose-invert' : ''} max-w-none`}>
                                 {job.description.split('\n').map((paragraph, index) => (
                                   paragraph.trim() ? (
                                     <p key={index} className="mb-2">
@@ -190,7 +191,7 @@ export default function JobsTable({ jobs, isLoading = false }: JobsTableProps) {
                               </div>
                             </div>
                           ) : (
-                            <p className="italic">No job description available</p>
+                            <p className={`italic ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>No job description available</p>
                           )}
                         </div>
                       </div>
@@ -209,14 +210,14 @@ export default function JobsTable({ jobs, isLoading = false }: JobsTableProps) {
                           : isAddedRecently
                             ? 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500'
                             : 'bg-gray-600 hover:bg-gray-700 focus:ring-gray-500'
-                          } focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-200`}
+                          } focus:outline-none focus:ring-2 focus:ring-offset-2 ${theme === 'dark' ? 'focus:ring-offset-gray-900' : ''} transition-colors duration-200`}
                       >
                         Apply Now
                       </Link>
                     ) : (
                       <button
                         disabled
-                        className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-gray-400 bg-gray-100 cursor-not-allowed"
+                        className={`inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-gray-400 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'} cursor-not-allowed`}
                       >
                         No Link Available
                       </button>
@@ -224,13 +225,12 @@ export default function JobsTable({ jobs, isLoading = false }: JobsTableProps) {
 
                     <button
                       onClick={() => toggleJobExpansion(job._id)}
-                      className={`inline-flex items-center text-sm ${
-                        isAddedVeryRecently 
-                          ? 'text-blue-600 hover:text-blue-800' 
-                          : isAddedRecently
-                            ? 'text-indigo-600 hover:text-indigo-800'
-                            : 'text-gray-600 hover:text-gray-800'
-                      } transition-colors duration-200`}
+                      className={`inline-flex items-center text-sm ${isAddedVeryRecently
+                        ? "text-blue-600 ${theme === 'dark' ? 'dark:text-blue-400' : ''} hover:text-blue-800 ${theme === 'dark' ? 'dark:hover:text-blue-300' : ''}"
+                        : isAddedRecently
+                          ? "text-indigo-600 ${theme === 'dark' ? 'dark:text-indigo-400' : ''} hover:text-indigo-800 ${theme === 'dark' ? 'dark:hover:text-indigo-300' : ''}"
+                          : "text-gray-600 ${theme === 'dark' ? 'dark:text-gray-400' : ''} hover:text-gray-800 ${theme === 'dark' ? 'dark:hover:text-gray-300' : ''}"
+                        } transition-colors duration-200`}
                     >
                       {isExpanded ? 'Show Less' : 'Show More'}
                       <svg
