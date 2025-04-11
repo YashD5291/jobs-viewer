@@ -1,7 +1,7 @@
 /**
  * Fetches job listings from the API
  */
-export async function fetchJobs(page = 1, limit = 10, search = '', isRemote = false, site = '') {
+export async function fetchJobs(page = 1, limit = 10, search = '', isRemote = false, site = '', scrapedFor = '') {
   const params = new URLSearchParams({
     page: page.toString(),
     limit: limit.toString(),
@@ -17,6 +17,10 @@ export async function fetchJobs(page = 1, limit = 10, search = '', isRemote = fa
   
   if (site) {
     params.append('site', site);
+  }
+  
+  if (scrapedFor) {
+    params.append('scrapedFor', scrapedFor);
   }
   
   const response = await fetch(`/api/jobs?${params.toString()}`, {
@@ -54,7 +58,7 @@ export async function fetchDashboardStats() {
 
 // React Query keys for consistent cache management
 export const queryKeys = {
-  jobs: (page: number, limit: number, search: string, isRemote: boolean, site: string) => 
-    ['jobs', page, limit, search, isRemote, site],
+  jobs: (page: number, limit: number, search: string, isRemote: boolean, scrapedFor: string, site: string) => 
+    ['jobs', page, limit, search, scrapedFor, isRemote, site],
   stats: () => ['stats'],
 }

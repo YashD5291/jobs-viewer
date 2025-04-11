@@ -16,6 +16,7 @@ export async function GET(request: Request) {
     const search = searchParams.get('search') || '';
     const isRemote = searchParams.get('isRemote') === 'true';
     const site = searchParams.get('site') || '';
+    const scrapedFor = searchParams.get('scrapedFor') || '';
     
     // Calculate pagination
     const skip = (page - 1) * limit;
@@ -38,6 +39,11 @@ export async function GET(request: Request) {
     // Add site filter if provided
     if (site) {
       query.site = site; // Exact match for site as it's a specific value
+    }
+    
+    // Add scraped_for filter if provided
+    if (scrapedFor) {
+      query.search_term = scrapedFor; // Exact match for job title
     }
     
     // Add remote filter if requested

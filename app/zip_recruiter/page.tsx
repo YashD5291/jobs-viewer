@@ -5,6 +5,7 @@ import PageTitle from "@/components/dashboard/PageTitle";
 import JobsTable from "@/components/JobsTable";
 import Pagination from "@/components/Pagination";
 import SearchBar from "@/components/SearchBar";
+import JobTitleFilter from "@/components/JobTitleFilter";
 import { PaginationData } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import { useStats } from "@/lib/context/StatsContext";
@@ -27,9 +28,11 @@ export default function ZipRecruiterJobsPage() {
     pagination,
     setPagination,
     search,
+    jobTitle,
     handlePageChange,
     handleRowsPerPageChange,
-    handleSearch
+    handleSearch,
+    handleJobTitleFilter
   } = usePaginationWithCache(initialPagination, "zip_recruiter");
 
   // Use the global stats context
@@ -46,6 +49,7 @@ export default function ZipRecruiterJobsPage() {
       pagination.limit,
       search,
       false,
+      jobTitle,
       "zip_recruiter"
     ),
     queryFn: async () => {
@@ -54,7 +58,8 @@ export default function ZipRecruiterJobsPage() {
         pagination.limit,
         search,
         false,
-        "zip_recruiter"
+        "zip_recruiter",
+        jobTitle
       );
 
       if (response.success) {
@@ -79,9 +84,16 @@ export default function ZipRecruiterJobsPage() {
 
       <div className="space-y-6">
         {/* Search and Filter Section */}
-        <div className={`bg-white shadow-md rounded-lg overflow-hidden p-6 ${theme === 'dark' ? 'dark:bg-gray-900 dark:shadow-gray-800 dark:bg-gray-900' : ''}`}>
+        <div className={`bg-white shadow-md rounded-lg p-6 ${theme === 'dark' ? 'dark:bg-gray-900 dark:shadow-gray-800 dark:bg-gray-900' : ''}`}>
           <div className={`space-y-4 ${theme === 'dark' ? 'dark:bg-gray-900' : ''}`}>
-            <SearchBar onSearch={handleSearch} initialValue={search} />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="md:col-span-2">
+                <SearchBar onSearch={handleSearch} initialValue={search} />
+              </div>
+              <div>
+                <JobTitleFilter onSelect={handleJobTitleFilter} selectedJobTitle={jobTitle} />
+              </div>
+            </div>
           </div>
         </div>
 

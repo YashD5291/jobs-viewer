@@ -19,9 +19,9 @@ export default function DashboardPage() {
         isLoading: isJobsLoading,
         error: jobsError
     } = useQuery({
-        queryKey: queryKeys.jobs(1, 10, '', false, ''),
+        queryKey: queryKeys.jobs(1, 10, '', false, '', ''),
         queryFn: async () => {
-            const response = await fetchJobs(1, 10);
+            const response = await fetchJobs(1, 10, '', false, '', '');
             if (response.success) {
                 return response.data.jobs;
             }
