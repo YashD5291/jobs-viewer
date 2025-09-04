@@ -1,7 +1,12 @@
 // Simple script to test MongoDB connection and list collections
 const mongoose = require('mongoose');
 
-const MONGODB_URI = 'mongodb+srv://occupy-mars:1234567890@cluster0.xok8xgd.mongodb.net/job_database?retryWrites=true&w=majority&appName=Cluster0';
+const MONGODB_URI = process.env.MONGODB_URI;
+
+if (!MONGODB_URI) {
+  console.error('Please define the MONGODB_URI environment variable');
+  process.exit(1);
+}
 
 async function testConnection() {
   try {
